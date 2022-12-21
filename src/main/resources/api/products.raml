@@ -70,7 +70,7 @@ types:
             application/json:
               type: Producto
               example: !include /ejemplos/producto-example.json
-        400:
+        404:
           body:
             application/json:
               example:
@@ -81,7 +81,7 @@ types:
       displayName: Eliminar Producto
       description: Elimina, de BD, un producto dado su ID.
       responses:
-        204:
+        200:
           body:
             application/json:
               example:

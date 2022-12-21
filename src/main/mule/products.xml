@@ -168,8 +168,8 @@ else
 	where id = :id]]></db:sql>
 			<db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
 		</db:query-single>
-		<validation:is-not-null doc:name="Is not null" doc:id="965e556b-9fe1-4b6b-a751-8a20681339ab" value="#[payload.id]" message="#['El producto de ID = ' ++ vars.id ++ ' no se encuentra registrado en BD']">
-			<error-mapping targetType="APP:NOT_FOUND" />
+		<validation:is-not-null doc:name="Is not null" doc:id="89cb54b1-5406-417a-b016-e2471f060d9d" value="#[payload.id]" message='#["El producto de ID = " ++ vars.id ++ " no se encuentra registrado en BD"]'>
+			<error-mapping sourceType="VALIDATION:NULL" targetType="APP:NOT_FOUND" />
 		</validation:is-not-null>
 		<ee:transform doc:name="Set Result">
             <ee:message>
@@ -192,6 +192,22 @@ output application/json
             </ee:message>
         </ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="51806fcc-768a-4b73-8947-e118b2a7036f" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="0f2eaa56-1680-44ba-8bed-164a653eb6e1" type="ANY">
+				<logger level="INFO" doc:name="Logger" doc:id="52ffa9fb-e000-41ee-9abc-92f977ec84ba" />
+				<set-variable value="404" doc:name="Set Variable" doc:id="1d251cc6-a7d0-4199-82a7-6a5d7c5ed341" variableName="httpStatus"/>
+				<ee:transform doc:name="Transform Message" doc:id="33c2a88f-ae0b-461b-ba57-8c023ee38500" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "mensaje": error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
     </flow>
 	<flow name="get:\productos:products-config">
         <logger level="INFO" doc:name="Logger" doc:id="1ad535fa-f2d6-45e2-8b24-c210066e95b8" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
@@ -256,26 +272,21 @@ where id = :id
     </flow>
 	<flow name="delete:\productos\(id):products-config">
         <logger level="INFO" doc:name="Logger" doc:id="9a1f9a37-c2f1-4b31-9494-d968e6f437c9" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
-		<ee:transform doc:name="Set Id">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-		<db:delete doc:name="Delete Producto" doc:id="cd5e6511-7048-4217-b98f-787f847b0ced" config-ref="Database_Config">
-			<db:sql ><![CDATA[delete from product
-	where id = :id]]></db:sql>
+		<set-variable value="#[attributes.uriParams.id]" doc:name="Set Variable" doc:id="818cfaf0-476f-4661-b233-be21a9638c33" variableName="id"/>
+		<db:delete doc:name="Delete" doc:id="d7104bb5-7032-4944-98bd-0da5ebfcf94f" config-ref="Database_Config">
+			<db:sql ><![CDATA[DELETE FROM product WHERE id = :id]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
 		</db:delete>
-		<ee:transform doc:name="Set Result">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+		<ee:transform doc:name="Transform Message" doc:id="969a9a91-e7ee-46c2-9e2e-f7633a023b08" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  mensaje: "Producto de ID = " ++ vars.id ++ " fue eliminado exitosamente"
+  "mensaje":"Producto de ID ="++ vars.id ++" fue eliminado exitosamente"
 }]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="a89fb4bd-0191-4116-be49-dcb3127c04a8" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]" />
     </flow>
 	<flow name="get:\productos\from-dummyjson:products-config" doc:id="ff9da9f7-3663-41d9-a1f9-2aea842dbc83">
