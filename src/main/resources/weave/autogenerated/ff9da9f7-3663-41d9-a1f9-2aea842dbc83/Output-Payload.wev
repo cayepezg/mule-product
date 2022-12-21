@@ -1,0 +1,15 @@
+%dw 2.0
+
+type auto_ff9da9f7_3663_41d9_a1f9_2aea842dbc83_Output_Payload = Array<{  discountPercentage?: Number,   raiting?: Number,   thumbnail?: String,   images?: Array<Any> {"description": "Arreglo de URL de imágenes del producto",
+  "label": "Imágenes"}, 
+  price?: Number, 
+  description?: String, 
+  id?: Number, 
+  title?: String, 
+  stock?: Number, 
+  category?: String, 
+  brand?: String, 
+  _?: Any
+} {"description": "Definición de la entidad PRODUCTO",
+"label": "Producto"}>
+

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="4cc8b021-e7d2-423d-9a62-746c7e8d3686" >
+		<http:request-connection host="#[p('request.url')]" port="#[p('request.port')]" protocol="HTTPS"/>
+	</http:request-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="8dc78cab-d671-4157-8941-0769e02764b6" >
+		<db:generic-connection url="jdbc:postgresql://${db.host}:${db.port}/${db.database}" user="${db.user}" password="${db.password}" driverClassName="${db.driver}"/>
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="be26a529-ad65-4f76-a0e2-2c3c72e12a24" file="productos.properties" />
+	<configuration-properties doc:name="Configuration properties" doc:id="d5265732-3933-4cf3-8c64-6758eaf20308" file="conection_db.properties" />
+</mule>

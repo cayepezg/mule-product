@@ -1,0 +1,104 @@
+#%RAML 1.0
+title: products
+description: API para la gestión de Productos
+
+types:
+   Producto: !include /tipos/producto-type.raml
+
+/productos:
+  /from-dummyjson:
+    displayName: Obtener Productos DJ
+    description: Obtener productos desde las API's de https://dummyjson.com/products
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: Producto[]
+              example: !include /ejemplos/productos-example.json
+
+  /migrar-from-dummyjson:
+    displayName: Migrar Productos
+    description: Obtiene los productos desde https://dummyjson.com/products y los persiste en una BD
+    post:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                {
+                  "resultado": "Se persistieron N registros en BD."
+                }
+  get:
+    displayName: Listar Productos
+    description: Obtiene, de BD, un listado de Productos.
+    responses:
+      200:
+        body:
+          application/json:
+            type: Producto[]
+            example: !include /ejemplos/productos-example.json
+  
+  post:
+    displayName: Crear Producto
+    description: Crea un producto en BD.
+    body:
+      application/json:
+        type: Producto
+        example: !include /ejemplos/producto-example.json
+    responses:
+      201:
+        body:
+          application/json:
+            type: Producto
+            example: !include /ejemplos/producto-example.json
+
+  /{id}:
+    uriParameters:
+      id:
+        type: integer
+        displayName: ID
+        description: Identificador único del Producto
+        example: 1
+        required: true
+    get:
+      displayName: Obtener Producto
+      description: Obtiene, de BD, un Producto dado su ID.
+      responses:
+        200:
+          body:
+            application/json:
+              type: Producto
+              example: !include /ejemplos/producto-example.json
+        400:
+          body:
+            application/json:
+              example:
+                {
+                  "mensaje": "El producto de ID = 1 no se encuentra registrado en BD"
+                }
+    delete:
+      displayName: Eliminar Producto
+      description: Elimina, de BD, un producto dado su ID.
+      responses:
+        204:
+          body:
+            application/json:
+              example:
+                {
+                  "mensaje":"Producto de ID = 1 fue eliminado exitosamente"
+                }
+    put:
+      displayName: Modificar Producto
+      description: Modifica, en BD, un producto cuyo ID sea el indicado por parámetro.
+      body:
+        application/json:
+          type: Producto
+          example: !include /ejemplos/producto-example.json
+      responses:
+        200:
+          body:
+            application/json:
+              type: Producto
+              example: !include ejemplos/producto-example.json
+    

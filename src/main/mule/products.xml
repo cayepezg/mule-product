@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    <http:listener-config name="products-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="products-config" api="products.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<flow name="products-main">
+        <http:listener config-ref="products-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="products-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND" enableNotifications="true" logException="false">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+	<flow name="products-console">
+        <http:listener config-ref="products-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="products-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="post:\productos:application\json:products-config">
+        <logger level="INFO" doc:name="Logger" doc:id="ac88851c-8aca-404e-855b-9dff26a88a61" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]"/>
+		<db:insert doc:name="Insert" doc:id="a0f9a236-361c-4931-842e-8b99684aa28b" config-ref="Database_Config" autoGenerateKeys="true">
+			<db:sql><![CDATA[insert into product(
+	title, description, price, discountPercentage, 
+	thumbnail, images, stock, category, brand
+	)
+values (
+	:title, :description, :price, :discountPercentage,
+	:thumbnail, :images, :stock, :category, :brand
+)
+
+	]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"title": payload.title,
+	"description": payload.description,
+	"price": payload.price,
+	"discountPercentage": payload.discountPercentage,
+	"thumbnail": payload.thumbnail,
+	"images":  joinBy(payload.images, ","),
+	"stock": payload.stock,
+	"category": payload.category,
+	"brand": payload.brand
+}]]]></db:input-parameters>
+		</db:insert>
+		<set-variable value="#[payload.generatedKeys.id]" doc:name="Set Id" doc:id="1af1a0d6-be85-48e2-997e-d2330faaa7ea" variableName="id" />
+		<flow-ref doc:name="Obtener Producto" doc:id="fdf18181-3c53-446a-8c77-9f7da2bf040e" name="get:\productos\(id):products-config" />
+    </flow>
+	<flow name="get:\productos\(id):products-config" doc:id="11a6f06a-3c74-49b9-b12d-bf2b398e3ff5">
+        <logger level="INFO" doc:name="Logger" doc:id="1e425887-abae-4a52-8364-42890f5fae8a" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
+		<ee:transform doc:name="Set Id">
+            <ee:variables>
+                <ee:set-variable variableName="id"><![CDATA[if (attributes.uriParams.'id' != null) 
+	attributes.uriParams.'id'
+else  
+	vars.id]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:query-single doc:name="Select Product" doc:id="b89b02b3-5996-4a54-ba3f-2c39445a06b9" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from product
+	where id = :id]]></db:sql>
+			<db:input-parameters><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+		</db:query-single>
+		<validation:is-not-null doc:name="Is not null" doc:id="965e556b-9fe1-4b6b-a751-8a20681339ab" value="#[payload.id]" message="#['El producto de ID = ' ++ vars.id ++ ' no se encuentra registrado en BD']">
+			<error-mapping targetType="APP:NOT_FOUND" />
+		</validation:is-not-null>
+		<ee:transform doc:name="Set Result">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	id: payload.id,
+	title: payload.title,
+	description: payload.description,
+	price: payload.price,
+	discountPercentage: payload.discountpercentage,
+	thumbnail: payload.thumbnail,
+	images: payload.images,
+	stock: payload.stock,
+	category: payload.category,
+	brand: payload.brand,
+	images: splitBy(payload.images, ",")
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="51806fcc-768a-4b73-8947-e118b2a7036f" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]"/>
+    </flow>
+	<flow name="get:\productos:products-config">
+        <logger level="INFO" doc:name="Logger" doc:id="1ad535fa-f2d6-45e2-8b24-c210066e95b8" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
+		<db:select doc:name="Select Products" doc:id="faaa2392-7f1f-4036-92cf-bf752aeb981b" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from product]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Set Result">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((i) -> {
+    (i mapObject ((v, k) -> 
+        {
+            (k): (
+                if (k ~= "images")
+                    splitBy(v, ",")
+                else
+                    v
+            )
+        }
+    ))
+})]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="4b8c0270-39a1-4ba6-bfd7-fa47d90037c5" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]" />
+    </flow>
+	<flow name="put:\productos\(id):application\json:products-config">
+        <logger level="INFO" doc:name="Logger" doc:id="4519670c-0f4e-4c75-9e00-4c6b48fdc19b" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
+		<ee:transform doc:name="Set Id">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <db:update doc:name="Update Product" doc:id="22d446c3-d3ff-4ca2-a72e-c1441d732600" config-ref="Database_Config">
+			<db:sql><![CDATA[update product
+	set title = :title, 
+	description = :description,
+	price = :price,
+	discountPercentage = :discountPercentage,
+	thumbnail = :thumbnail,
+	images = :images,
+	stock = :stock,
+	category = :category,
+	brand = :brand
+where id = :id
+	]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	'id': vars.id,
+	'title': payload.title,
+	'description': payload.description,
+	'price': payload.price,
+	'discountPercentage': payload.discountPercentage,
+	'thumbnail': payload.discountPercentage,
+	'images': (joinBy(payload.images, ",") as String),
+	'stock': payload.stock,
+	'category': payload.category,
+	'brand': payload.brand
+}]]]></db:input-parameters>
+		</db:update>
+		<flow-ref doc:name="Obtener Producto" doc:id="2920ead7-1f09-49e8-bfbe-75f693463f78" name="get:\productos\(id):products-config" />
+    </flow>
+	<flow name="delete:\productos\(id):products-config">
+        <logger level="INFO" doc:name="Logger" doc:id="9a1f9a37-c2f1-4b31-9494-d968e6f437c9" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
+		<ee:transform doc:name="Set Id">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<db:delete doc:name="Delete Producto" doc:id="cd5e6511-7048-4217-b98f-787f847b0ced" config-ref="Database_Config">
+			<db:sql ><![CDATA[delete from product
+	where id = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'id': vars.id}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Set Result">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  mensaje: "Producto de ID = " ++ vars.id ++ " fue eliminado exitosamente"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a89fb4bd-0191-4116-be49-dcb3127c04a8" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]" />
+    </flow>
+	<flow name="get:\productos\from-dummyjson:products-config" doc:id="ff9da9f7-3663-41d9-a1f9-2aea842dbc83">
+		<logger level="INFO" doc:name="Logger" doc:id="ba7f4b1f-52e7-4ad4-9ac2-77e07191be5d" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
+		<http:request method="GET" doc:name="Obtener Producto de dummyjson" doc:id="9ac5e305-0c4d-44a2-a6e9-3d6804040ba1" config-ref="HTTP_Request_configuration" path="/products"/>
+		<ee:transform doc:name="Set Result">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.products]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="e238f3ac-903d-437a-9f02-88ae3fd37952" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]" />
+    </flow>
+    <flow name="post:\productos\migrar-from-dummyjson:products-config">
+        <logger level="INFO" doc:name="Logger" doc:id="cd0495e2-efa8-4873-99a5-c9af50f92063" message="#['REQUEST\n-------\nFlow: ' ++ flow.name ++ '\nRequest: ' ++ attributes.requestUri ++ '\nMessage Id: ' ++ correlationId]" />
+		<flow-ref doc:name="Obtener Productos de dummyjson" doc:id="ba694af8-3ef6-4d2e-a0af-930405798ad7" name="get:\productos\from-dummyjson:products-config"/>
+		<ee:transform doc:name="Transform Message" doc:id="6bc4fb34-1565-420f-b0ba-6bcf8584fe19" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+ payload map ((item, index) -> {
+        (
+            item mapObject ((v, k, i) -> {
+
+                (if ((k) ~= "images" )
+                    (k): joinBy(v, ",")
+                else
+                    (k): v
+                )
+            })
+        )
+    } 
+ )]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:bulk-insert doc:name="Insert Productos" doc:id="a91841b5-9e76-48b5-842b-66119f08f46f" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into product (title, description, price, discountPercentage, rating,
+	stock, brand, category, thumbnail, images)
+values(
+	:title, :description, :price, :discountPercentage, :rating,
+	:stock, :brand, :category, :thumbnail, :images
+)
+on conflict do nothing]]></db:sql>
+		</db:bulk-insert>
+		<ee:transform doc:name="Set Result">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  resultado: "Se persistieron " ++ (sizeOf(payload)) ++ " registros en BD."
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="396424f0-e54b-4e06-b157-10fa6f10b5c8" message="#['RESPONSE\n--------\nFlow: ' ++ flow.name  ++ '\nMessage Id: ' ++ correlationId ++ '\nPayload:\n']#[payload]" />
+    </flow>
+</mule>

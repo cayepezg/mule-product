@@ -1,0 +1,103 @@
+#%RAML 1.0 DataType
+
+type: object
+displayName: Producto
+description: Definición de la entidad PRODUCTO
+example:
+  {
+    "id": 1,
+    "title": "iPhone 9",
+    "description": "An apple mobile which is nothing like apple",
+    "price": 549,
+    "discountPercentage": 12.96,
+    "rating": 4.69,
+    "stock": 94,
+    "brand": "Apple",
+    "category": "smartphones",
+    "thumbnail": "https://i.dummyjson.com/data/products/1/thumbnail.jpg",
+    "images": [
+      "https://i.dummyjson.com/data/products/1/1.jpg",
+      "https://i.dummyjson.com/data/products/1/2.jpg",
+      "https://i.dummyjson.com/data/products/1/3.jpg",
+      "https://i.dummyjson.com/data/products/1/4.jpg",
+      "https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+    ]
+  }
+
+
+properties:
+  id:
+    type: integer
+    displayName: Id
+    description: Identificador único del producto
+    required: false
+    default: 0
+    example: 0
+  title:
+    type: string
+    displayName: Título
+    description: Título del producto
+    required: false
+    example: "iPhone 9"
+  description:
+    type: string
+    displayName: Descripción
+    description: Descripción del producto
+    required: false
+    example: "An apple mobile which is nothing like apple"
+  price:
+    type: number
+    displayName: Precio
+    description: Precio del producto
+    required: false
+    example: 549
+  discountPercentage:
+    type: number
+    displayName: \% Descuento
+    description: Porcentaje de descuento
+    required: false
+    example: 12.96
+  raiting:
+    type: number
+    displayName: Valoración
+    description: Puntuación del producto
+    required: false
+    example: 4.69
+  stock:
+    type: integer
+    displayName: Existencia
+    description: Cantidad de existencia del producto
+    required: false
+    example: 1
+    default: 0
+  brand:
+    type: string
+    displayName: Marca
+    description: Marca del producto
+    required: false
+    example: "Apple"
+  category:
+    type: string
+    displayName: Categoría
+    description: Categoría a la que pertenece el producto
+    required: false
+    example: "smartphones"
+  thumbnail:
+    type: string
+    displayName: Miniatura
+    description: URL de imágen miniatura del producto
+    required: false
+    example: "https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+  images:
+    type: array
+    displayName: Imágenes
+    description: Arreglo de URL de imágenes del producto
+    required: false
+    example:
+      [
+        "https://i.dummyjson.com/data/products/1/1.jpg",
+        "https://i.dummyjson.com/data/products/1/2.jpg",
+        "https://i.dummyjson.com/data/products/1/3.jpg",
+        "https://i.dummyjson.com/data/products/1/4.jpg",
+        "https://i.dummyjson.com/data/products/1/thumbnail.jpg"
+      ]
